@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dark_on_primary">#FFFFFF</color>
+    <color name="dark_status_bar">#0F1A16</color>
+    <color name="dark_window_background">#12201C</color>
+    <color name="dark_surface">#1B2B26</color>
+    <color name="dark_text_primary">#E7F0EC</color>
+    <color name="dark_text_secondary">#A9BDB6</color>
+</resources>

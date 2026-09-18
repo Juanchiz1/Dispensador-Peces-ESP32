@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_primary">#2F8F6F</color>
+    <color name="brand_primary_dark">#1E6B50</color>
+    <color name="brand_secondary">#3B82C4</color>
+    <color name="background_light">#F4F7F6</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="text_primary_light">#1B2B26</color>
+    <color name="text_secondary_light">#5C6E68</color>
+    <color name="alert_warning">#E58A2E</color>
+    <color name="alert_danger">#D64545</color>
+    <color name="alert_ok">#2F8F6F</color>
+    <color name="divider_light">#E1E8E5</color>
+</resources>
