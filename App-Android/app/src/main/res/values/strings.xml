@@ -9,8 +9,13 @@
     <string name="connecting">Conectando…</string>
     <string name="connect_error">No se pudo conectar. Verifica que el celular esté en la misma red WiFi y que la IP sea correcta.</string>
     <string name="btn_skip_connection">Entrar sin conectar</string>
+    <string name="btn_discover">Buscar en la red</string>
+    <string name="discovering">Buscando dispensadores…</string>
+    <string name="discover_none_found">No se encontró ningún dispensador en la red. Verifica que esté encendido y en la misma red WiFi, o ingresa la IP manualmente.</string>
+    <string name="discover_pick_title">Se encontraron varios dispensadores</string>
     <string name="not_connected_yet">No has conectado ningún dispensador todavía</string>
     <string name="btn_connect_device">Conectar dispensador</string>
+    <string name="btn_setup_wifi_first_time">¿Primera vez? Configura el WiFi del dispensador</string>
 
     <string name="nav_dashboard">Inicio</string>
     <string name="nav_schedule">Horarios</string>
@@ -50,6 +55,28 @@
     <string name="disconnect_confirm_message">Tendrás que ingresar la IP de nuevo para volver a conectarte.</string>
     <string name="cancel">Cancelar</string>
     <string name="accept">Aceptar</string>
+
+    <string name="settings_wifi_ssid_label">Red WiFi actual</string>
+    <string name="btn_configure_wifi">Configurar WiFi del dispensador</string>
+    <string name="settings_datetime">Fecha y hora</string>
+    <string name="settings_datetime_desc">El dispensador usa su reloj interno (RTC) para disparar los horarios de alimentación. Sincronízalo con la hora de tu celular si notas que está atrasado o adelantado.</string>
+    <string name="btn_sync_time">Sincronizar hora con el celular</string>
+    <string name="time_sync_success">Hora sincronizada correctamente</string>
+    <string name="time_sync_error">No se pudo sincronizar la hora. Verifica la conexión con el dispensador.</string>
+
+    <string name="wifi_config_title">Configurar WiFi del dispensador</string>
+    <string name="wifi_config_subtitle_setup">Conecta tu celular a la red WiFi \"PezFeeder-Config\" que crea el dispensador (contraseña: pezfeeder123) y luego escribe aquí el nombre y la contraseña de tu red de casa.</string>
+    <string name="wifi_config_subtitle_reconfig">Escribe el nombre y la contraseña de la nueva red WiFi a la que quieres que se conecte el dispensador.</string>
+    <string name="hint_target_ip">IP del dispensador</string>
+    <string name="hint_new_ssid">Nombre de tu red WiFi (SSID)</string>
+    <string name="hint_new_password">Contraseña de tu red WiFi</string>
+    <string name="btn_load_current_wifi">Ver red configurada actualmente</string>
+    <string name="btn_save_wifi_config">Guardar y reiniciar dispensador</string>
+    <string name="wifi_config_saving">Guardando…</string>
+    <string name="wifi_config_success">Listo. El dispensador se está reiniciando e intentará conectarse a esa red. Búscalo de nuevo desde \"Buscar en la red\" cuando tu celular esté en tu WiFi normal.</string>
+    <string name="wifi_config_error">No se pudo guardar. Verifica que la IP sea correcta y que tu celular esté conectado a la red del dispensador (o a la misma red WiFi si ya estaba configurado).</string>
+    <string name="wifi_config_current_ssid">Red configurada actualmente: %1$s</string>
+    <string name="btn_done">Listo</string>
 
     <string name="notif_channel_name">Alertas del dispensador</string>
     <string name="notif_channel_desc">Avisos de tolva vacía y humedad alta</string>

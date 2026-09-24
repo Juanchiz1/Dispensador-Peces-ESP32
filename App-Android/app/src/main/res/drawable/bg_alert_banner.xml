@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#FBEAD9" />
+    <!-- El color real se aplica por código (ver DashboardFragment.bindStatus) según si la
+         alerta es de advertencia o de tolva vacía, y se adapta solo a modo oscuro. -->
+    <solid android:color="@color/alert_warning_bg" />
     <corners android:radius="12dp" />
 </shape>

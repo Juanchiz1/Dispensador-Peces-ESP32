@@ -6,4 +6,25 @@
     <color name="dark_surface">#1B2B26</color>
     <color name="dark_text_primary">#E7F0EC</color>
     <color name="dark_text_secondary">#A9BDB6</color>
+
+    <!-- Todas las vistas usan los nombres "light" (background_light, text_primary_light, etc.)
+         directamente en sus layouts; al estar en values-night, estas líneas los redirigen
+         automáticamente a colores oscuros sin tocar ni un layout. Son referencias a otro
+         color resource (@color/...), nunca hex crudo, así que no repiten el crash anterior
+         de NavigationBarMenuView con temas. -->
+    <color name="background_light">@color/dark_window_background</color>
+    <color name="surface_light">@color/dark_surface</color>
+    <color name="text_primary_light">@color/dark_text_primary</color>
+    <color name="text_secondary_light">@color/dark_text_secondary</color>
+    <color name="divider_light">#2A3B35</color>
+
+    <color name="nav_item_selected">#4FBE95</color>
+    <color name="nav_item_unselected">#5E7A70</color>
+
+    <color name="alert_ok">#4FBE95</color>
+    <color name="alert_ok_bg">#173028</color>
+    <color name="alert_warning">#F0A25C</color>
+    <color name="alert_warning_bg">#33261A</color>
+    <color name="alert_danger">#E8837F</color>
+    <color name="alert_danger_bg">#3A2222</color>
 </resources>

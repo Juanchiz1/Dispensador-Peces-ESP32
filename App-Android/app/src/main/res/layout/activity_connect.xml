@@ -71,10 +71,22 @@
             android:visibility="gone" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDiscover"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="16dp"
+            app:cornerRadius="14dp"
+            app:icon="@drawable/ic_search"
+            android:text="@string/btn_discover"
+            android:textAllCaps="false"
+            android:textSize="16sp" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnConnect"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="12dp"
             app:cornerRadius="14dp"
             android:text="@string/btn_connect"
             android:textAllCaps="false"
@@ -95,6 +107,16 @@
             android:layout_marginTop="12dp"
             android:text="@string/btn_skip_connection"
             android:textAllCaps="false" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSetupWifi"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/btn_setup_wifi_first_time"
+            android:textAllCaps="false"
+            android:textSize="12sp" />
 
     </LinearLayout>
 </ScrollView>

@@ -32,6 +32,15 @@ public class FeederStatus {
     @SerializedName("hora_actual")
     public String horaActual;
 
+    @SerializedName("fecha_actual")
+    public String fechaActual;
+
+    @SerializedName("modo_ap")
+    public boolean modoAp;
+
+    @SerializedName("wifi_ssid")
+    public String wifiSsid;
+
     @SerializedName("wifi_rssi")
     public int wifiRssi;
 }

@@ -2,6 +2,9 @@ package com.juanchiz.fishfeeder.network;
 
 import com.juanchiz.fishfeeder.model.FeederStatus;
 import com.juanchiz.fishfeeder.model.ScheduleItem;
+import com.juanchiz.fishfeeder.model.TimeSyncRequest;
+import com.juanchiz.fishfeeder.model.WifiConfig;
+import com.juanchiz.fishfeeder.model.WifiConfigRequest;
 
 import java.util.List;
 
@@ -13,7 +16,8 @@ import retrofit2.http.Query;
 
 /**
  * Coincide con los endpoints servidos por setupServidorWeb() en el firmware
- * (fish_feeder_firmware.ino): /api/status, /api/feed, /api/schedule.
+ * (fish_feeder_firmware.ino): /api/status, /api/feed, /api/schedule,
+ * /api/wifi-config, /api/time.
  */
 public interface FeederApiService {
 
@@ -28,4 +32,13 @@ public interface FeederApiService {
 
     @POST("api/schedule")
     Call<Void> setSchedule(@Body List<ScheduleItem> schedule);
+
+    @GET("api/wifi-config")
+    Call<WifiConfig> getWifiConfig();
+
+    @POST("api/wifi-config")
+    Call<Void> setWifiConfig(@Body WifiConfigRequest config);
+
+    @POST("api/time")
+    Call<Void> syncTime(@Body TimeSyncRequest time);
 }

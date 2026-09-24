@@ -5,6 +5,8 @@
   Sensores:   DHT22 (humedad/temperatura del alimento) + VL53L0X (nivel de tolva)
   RTC:        DS3231 (horarios de alimentación)
   Panel de control: servidor web embebido, servido por el propio ESP32
+  Descubrimiento: mDNS — el dispensador se anuncia como http://pezfeeder.local,
+  así la app no depende de que la IP del router se mantenga igual.
 
   Antes de subir: revisa GUIA_ARMADO_DISPENSADOR.md, sección 5, para instalar
   las librerías necesarias, y ajusta las credenciales de WiFi más abajo.
@@ -12,6 +14,7 @@
 
 #include <WiFi.h>
 #include <WebServer.h>
+#include <ESPmDNS.h>
 #include <Wire.h>
 #include <RTClib.h>
 #include <DHT.h>
@@ -23,6 +26,11 @@
 // ---------------- CONFIGURACIÓN DE RED ----------------
 const char* WIFI_SSID     = "TECNO40";
 const char* WIFI_PASSWORD = "Julio4080";
+
+// Nombre mDNS: el dispensador queda accesible en http://pezfeeder.local
+// sin importar qué IP le asigne el router. Si tienes varios tanques,
+// cambia este nombre por uno distinto en cada ESP32 (ej: "pezfeeder-tanque2").
+const char* MDNS_HOSTNAME = "pezfeeder";
 
 // ---------------- PINES ----------------
 #define PIN_DHT22          4
@@ -203,8 +211,17 @@ void conectarWiFi() {
   }
   Serial.println();
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.print("Conectado. Panel de control: http://");
+    Serial.print("Conectado. IP asignada: http://");
     Serial.println(WiFi.localIP());
+
+    if (MDNS.begin(MDNS_HOSTNAME)) {
+      MDNS.addService("http", "tcp", 80);
+      Serial.print("mDNS activo. Panel de control: http://");
+      Serial.print(MDNS_HOSTNAME);
+      Serial.println(".local  (esta dirección no cambia aunque cambie la IP)");
+    } else {
+      Serial.println("ADVERTENCIA: no se pudo iniciar mDNS. Usa la IP directamente.");
+    }
   } else {
     Serial.println("No se pudo conectar. Revisa WIFI_SSID y WIFI_PASSWORD.");
   }

@@ -1,6 +1,5 @@
 package com.juanchiz.fishfeeder.ui.stats;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -112,7 +111,7 @@ public class StatsFragment extends Fragment {
             entries.add(new Entry(i, (float) readings.get(i).humedad));
         }
         LineDataSet dataSet = new LineDataSet(entries, "Humedad");
-        styleDataSet(dataSet, Color.parseColor("#3B82C4"));
+        styleDataSet(dataSet, androidx.core.content.ContextCompat.getColor(requireContext(), R.color.brand_secondary));
         chartHumidity.setData(new LineData(dataSet));
         chartHumidity.invalidate();
     }
@@ -123,7 +122,7 @@ public class StatsFragment extends Fragment {
             entries.add(new Entry(i, readings.get(i).nivelTolvaPct));
         }
         LineDataSet dataSet = new LineDataSet(entries, "Nivel");
-        styleDataSet(dataSet, Color.parseColor("#2F8F6F"));
+        styleDataSet(dataSet, androidx.core.content.ContextCompat.getColor(requireContext(), R.color.brand_primary));
         chartLevel.setData(new LineData(dataSet));
         chartLevel.invalidate();
     }

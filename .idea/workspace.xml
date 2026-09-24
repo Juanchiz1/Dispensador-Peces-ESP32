@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5dfcc6b8-e22c-4a67-99b5-35732191dcdd" name="Changes" comment="Reorganiza el repo como monorepo: app, firmware,modelo 3D">
-      <change afterPath="$PROJECT_DIR$/.idea/Dispensador-Peces-ESP32.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/App-Android/.idea/App-Android.iml" afterDir="false" />
-    </list>
+    <list default="true" id="5dfcc6b8-e22c-4a67-99b5-35732191dcdd" name="Changes" comment="Agregado de código del ESP32 para arduino ID" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -72,7 +68,23 @@
       <option name="project" value="LOCAL" />
       <updated>1789739962599</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Reorganiza el repo como monorepo: app, firmware,modelo 3D">
+      <option name="closed" value="true" />
+      <created>1789740447085</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1789740447085</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Agregado de código del ESP32 para arduino ID">
+      <option name="closed" value="true" />
+      <created>1789740552965</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1789740552965</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -88,6 +100,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Reorganiza el repo como monorepo: app, firmware,modelo 3D" />
-    <option name="LAST_COMMIT_MESSAGE" value="Reorganiza el repo como monorepo: app, firmware,modelo 3D" />
+    <MESSAGE value="Agregado de código del ESP32 para arduino ID" />
+    <option name="LAST_COMMIT_MESSAGE" value="Agregado de código del ESP32 para arduino ID" />
   </component>
 </project>

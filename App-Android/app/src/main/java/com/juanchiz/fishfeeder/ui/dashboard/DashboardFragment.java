@@ -1,6 +1,5 @@
 package com.juanchiz.fishfeeder.ui.dashboard;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -156,15 +155,25 @@ public class DashboardFragment extends Fragment {
 
         if (alertText.length() > 0) {
             alertBanner.setVisibility(View.VISIBLE);
+            // Tolva vacía es más urgente que humedad alta, así que decide el color del banner.
+            int bgColorRes = status.tolvaVacia ? R.color.alert_danger_bg : R.color.alert_warning_bg;
+            int textColorRes = status.tolvaVacia ? R.color.alert_danger : R.color.alert_warning;
+            int bgColor = androidx.core.content.ContextCompat.getColor(requireContext(), bgColorRes);
+            int textColor = androidx.core.content.ContextCompat.getColor(requireContext(), textColorRes);
+
+            if (alertBanner.getBackground() != null) {
+                alertBanner.getBackground().mutate().setTint(bgColor);
+            }
+
             if (alertBanner instanceof android.widget.LinearLayout) {
                 TextView existing = alertBanner.findViewWithTag("alertLabel");
                 if (existing == null) {
                     existing = new TextView(requireContext());
                     existing.setTag("alertLabel");
-                    existing.setTextColor(Color.parseColor("#8A4A1E"));
                     existing.setTextSize(13);
                     ((android.widget.LinearLayout) alertBanner).addView(existing);
                 }
+                existing.setTextColor(textColor);
                 existing.setText(alertText.toString());
             }
         } else {

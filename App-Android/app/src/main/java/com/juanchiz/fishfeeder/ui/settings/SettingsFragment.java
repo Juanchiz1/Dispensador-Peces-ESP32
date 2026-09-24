@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,8 +16,17 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.juanchiz.fishfeeder.R;
 import com.juanchiz.fishfeeder.data.PrefsManager;
+import com.juanchiz.fishfeeder.model.TimeSyncRequest;
+import com.juanchiz.fishfeeder.network.FeederApiService;
 import com.juanchiz.fishfeeder.network.RetrofitClient;
 import com.juanchiz.fishfeeder.ui.MainActivity;
+import com.juanchiz.fishfeeder.ui.wifi.WifiConfigActivity;
+
+import java.util.Calendar;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /** Muestra la IP conectada, permite ajustar notificaciones y desconectar el dispensador. */
 public class SettingsFragment extends Fragment {
@@ -38,12 +48,20 @@ public class SettingsFragment extends Fragment {
         TextView tvCurrentIp = view.findViewById(R.id.tvCurrentIp);
         MaterialButton btnDisconnect = view.findViewById(R.id.btnDisconnect);
         MaterialButton btnConnectDevice = view.findViewById(R.id.btnConnectDevice);
+        MaterialButton btnConfigureWifi = view.findViewById(R.id.btnConfigureWifi);
+        MaterialButton btnSyncTime = view.findViewById(R.id.btnSyncTime);
 
         boolean isConnected = prefsManager.isConnected();
         tvCurrentIp.setText(isConnected ? prefsManager.getDeviceIp() : getString(R.string.not_connected_yet));
         btnDisconnect.setVisibility(isConnected ? View.VISIBLE : View.GONE);
         btnConnectDevice.setVisibility(isConnected ? View.GONE : View.VISIBLE);
         btnConnectDevice.setOnClickListener(v -> goToConnectScreen());
+
+        // Reconfigurar/sincronizar solo tienen sentido si ya hay un dispensador conectado.
+        btnConfigureWifi.setEnabled(isConnected);
+        btnSyncTime.setEnabled(isConnected);
+        btnConfigureWifi.setOnClickListener(v -> goToWifiReconfigure());
+        btnSyncTime.setOnClickListener(v -> syncTime(btnSyncTime));
 
         SwitchMaterial switchNotifyEmpty = view.findViewById(R.id.switchNotifyEmpty);
         SwitchMaterial switchNotifyHumidity = view.findViewById(R.id.switchNotifyHumidity);
@@ -80,5 +98,50 @@ public class SettingsFragment extends Fragment {
         android.content.Intent intent = new android.content.Intent(requireContext(),
                 com.juanchiz.fishfeeder.ui.connect.ConnectActivity.class);
         startActivity(intent);
+    }
+
+    /** El dispensador ya está conectado y en la misma red: se puede pedirle que cambie de WiFi
+     *  directamente por su IP actual (ver WifiConfigActivity, modo MODE_RECONFIGURE). */
+    private void goToWifiReconfigure() {
+        android.content.Intent intent = new android.content.Intent(requireContext(), WifiConfigActivity.class);
+        intent.putExtra(WifiConfigActivity.EXTRA_MODE, WifiConfigActivity.MODE_RECONFIGURE);
+        startActivity(intent);
+    }
+
+    /** Envía la hora local del celular al DS3231 del ESP32 (ver handleSetTime en el firmware). */
+    private void syncTime(MaterialButton button) {
+        String baseUrl = prefsManager.getBaseUrl();
+        if (baseUrl == null) return;
+
+        button.setEnabled(false);
+        Calendar ahora = Calendar.getInstance();
+        TimeSyncRequest cuerpo = new TimeSyncRequest(
+                ahora.get(Calendar.YEAR),
+                ahora.get(Calendar.MONTH) + 1, // Calendar.MONTH empieza en 0
+                ahora.get(Calendar.DAY_OF_MONTH),
+                ahora.get(Calendar.HOUR_OF_DAY),
+                ahora.get(Calendar.MINUTE),
+                ahora.get(Calendar.SECOND));
+
+        FeederApiService api = RetrofitClient.getApi(baseUrl);
+        api.syncTime(cuerpo).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (!isAdded()) return;
+                button.setEnabled(true);
+                if (response.isSuccessful()) {
+                    Toast.makeText(requireContext(), R.string.time_sync_success, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(requireContext(), R.string.time_sync_error, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                if (!isAdded()) return;
+                button.setEnabled(true);
+                Toast.makeText(requireContext(), R.string.time_sync_error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
