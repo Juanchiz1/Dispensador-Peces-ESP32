@@ -20,4 +20,11 @@ public interface SensorReadingDao {
 
     @Query("DELETE FROM sensor_readings WHERE timestampMillis < :beforeMillis")
     void deleteOlderThan(long beforeMillis);
+
+    /** La lectura más antigua dentro de la ventana, para calcular la tasa de consumo de la tolva. */
+    @Query("SELECT * FROM sensor_readings WHERE timestampMillis >= :sinceMillis ORDER BY timestampMillis ASC LIMIT 1")
+    SensorReading getOldestSince(long sinceMillis);
+
+    @Query("SELECT AVG(humedad) FROM sensor_readings WHERE timestampMillis >= :sinceMillis")
+    Double avgHumedadSince(long sinceMillis);
 }

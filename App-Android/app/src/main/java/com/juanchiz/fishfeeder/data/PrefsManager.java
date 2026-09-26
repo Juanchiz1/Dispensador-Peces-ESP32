@@ -10,6 +10,8 @@ public class PrefsManager {
     private static final String KEY_DEVICE_IP = "device_ip";
     private static final String KEY_NOTIFY_EMPTY = "notify_empty";
     private static final String KEY_NOTIFY_HUMIDITY = "notify_humidity";
+    private static final String KEY_NOTIFY_DAILY_SUMMARY = "notify_daily_summary";
+    private static final String KEY_LAST_FEED_LABEL = "last_feed_label";
 
     private final SharedPreferences prefs;
 
@@ -53,5 +55,24 @@ public class PrefsManager {
     public String getBaseUrl() {
         String ip = getDeviceIp();
         return ip == null ? null : "http://" + ip + "/";
+    }
+
+    public boolean isNotifyDailySummaryEnabled() {
+        return prefs.getBoolean(KEY_NOTIFY_DAILY_SUMMARY, true);
+    }
+
+    public void setNotifyDailySummaryEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_NOTIFY_DAILY_SUMMARY, enabled).apply();
+    }
+
+    /** Etiqueta de texto de la última alimentación que ya se registró en el historial local
+     *  (ver FeedingEventTracker), para no duplicar el mismo evento entre el polling en segundo
+     *  plano y el refresco en pantalla del Dashboard. */
+    public String getLastFeedLabel() {
+        return prefs.getString(KEY_LAST_FEED_LABEL, null);
+    }
+
+    public void setLastFeedLabel(String label) {
+        prefs.edit().putString(KEY_LAST_FEED_LABEL, label).apply();
     }
 }

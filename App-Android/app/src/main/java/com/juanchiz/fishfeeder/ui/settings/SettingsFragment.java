@@ -16,6 +16,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.juanchiz.fishfeeder.R;
 import com.juanchiz.fishfeeder.data.PrefsManager;
+import com.juanchiz.fishfeeder.model.PauseState;
 import com.juanchiz.fishfeeder.model.TimeSyncRequest;
 import com.juanchiz.fishfeeder.network.FeederApiService;
 import com.juanchiz.fishfeeder.network.RetrofitClient;
@@ -65,15 +66,70 @@ public class SettingsFragment extends Fragment {
 
         SwitchMaterial switchNotifyEmpty = view.findViewById(R.id.switchNotifyEmpty);
         SwitchMaterial switchNotifyHumidity = view.findViewById(R.id.switchNotifyHumidity);
+        SwitchMaterial switchNotifyDailySummary = view.findViewById(R.id.switchNotifyDailySummary);
         switchNotifyEmpty.setChecked(prefsManager.isNotifyEmptyEnabled());
         switchNotifyHumidity.setChecked(prefsManager.isNotifyHumidityEnabled());
+        switchNotifyDailySummary.setChecked(prefsManager.isNotifyDailySummaryEnabled());
 
         switchNotifyEmpty.setOnCheckedChangeListener((buttonView, isChecked) ->
                 prefsManager.setNotifyEmptyEnabled(isChecked));
         switchNotifyHumidity.setOnCheckedChangeListener((buttonView, isChecked) ->
                 prefsManager.setNotifyHumidityEnabled(isChecked));
+        switchNotifyDailySummary.setOnCheckedChangeListener((buttonView, isChecked) ->
+                prefsManager.setNotifyDailySummaryEnabled(isChecked));
+
+        SwitchMaterial switchVacationMode = view.findViewById(R.id.switchVacationMode);
+        switchVacationMode.setEnabled(isConnected);
+        if (isConnected) {
+            loadVacationMode(switchVacationMode);
+        }
 
         btnDisconnect.setOnClickListener(v -> confirmDisconnect());
+    }
+
+    /** El "modo vacaciones" vive en el ESP32 (no en el celular), así que se consulta su estado
+     *  real al abrir la pantalla en vez de asumir lo último que se dejó localmente. */
+    private void loadVacationMode(SwitchMaterial switchVacationMode) {
+        String baseUrl = prefsManager.getBaseUrl();
+        if (baseUrl == null) return;
+
+        FeederApiService api = RetrofitClient.getApi(baseUrl);
+        api.getPauseState().enqueue(new Callback<PauseState>() {
+            @Override
+            public void onResponse(Call<PauseState> call, Response<PauseState> response) {
+                if (!isAdded() || !response.isSuccessful() || response.body() == null) return;
+                switchVacationMode.setChecked(response.body().pausado);
+                switchVacationMode.setOnCheckedChangeListener((buttonView, isChecked) ->
+                        setVacationMode(isChecked));
+            }
+
+            @Override
+            public void onFailure(Call<PauseState> call, Throwable t) {
+                // Sin conexión momentánea: dejamos el switch como esté, no forzamos un estado.
+            }
+        });
+    }
+
+    private void setVacationMode(boolean pausado) {
+        String baseUrl = prefsManager.getBaseUrl();
+        if (baseUrl == null) return;
+
+        FeederApiService api = RetrofitClient.getApi(baseUrl);
+        api.setPauseState(new PauseState(pausado)).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(),
+                        pausado ? R.string.vacation_mode_active_banner : R.string.vacation_mode_resumed,
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), R.string.vacation_mode_error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void confirmDisconnect() {

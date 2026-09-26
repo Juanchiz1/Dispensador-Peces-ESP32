@@ -48,6 +48,18 @@
                     android:textColor="@color/text_primary_light" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tvVacationBanner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_alert_banner"
+                android:padding="10dp"
+                android:layout_marginBottom="12dp"
+                android:text="@string/vacation_mode_active_banner"
+                android:textColor="@color/brand_secondary"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/alertBanner"
                 android:layout_width="match_parent"
@@ -176,6 +188,16 @@
                         android:layout_height="8dp"
                         android:max="100"
                         android:progress="0" />
+
+                    <TextView
+                        android:id="@+id/tvDaysRemaining"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textSize="12sp"
+                        android:gravity="end"
+                        android:textColor="@color/text_secondary_light"
+                        android:visibility="gone" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

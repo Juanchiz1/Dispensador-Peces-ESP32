@@ -1,6 +1,7 @@
 package com.juanchiz.fishfeeder.network;
 
 import com.juanchiz.fishfeeder.model.FeederStatus;
+import com.juanchiz.fishfeeder.model.PauseState;
 import com.juanchiz.fishfeeder.model.ScheduleItem;
 import com.juanchiz.fishfeeder.model.TimeSyncRequest;
 import com.juanchiz.fishfeeder.model.WifiConfig;
@@ -41,4 +42,10 @@ public interface FeederApiService {
 
     @POST("api/time")
     Call<Void> syncTime(@Body TimeSyncRequest time);
+
+    @GET("api/pause")
+    Call<PauseState> getPauseState();
+
+    @POST("api/pause")
+    Call<Void> setPauseState(@Body PauseState state);
 }

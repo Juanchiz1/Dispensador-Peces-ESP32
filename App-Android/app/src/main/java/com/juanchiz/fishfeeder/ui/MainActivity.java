@@ -19,6 +19,7 @@ import com.juanchiz.fishfeeder.ui.dashboard.DashboardFragment;
 import com.juanchiz.fishfeeder.ui.schedule.ScheduleFragment;
 import com.juanchiz.fishfeeder.ui.settings.SettingsFragment;
 import com.juanchiz.fishfeeder.ui.stats.StatsFragment;
+import com.juanchiz.fishfeeder.work.DailySummaryWorker;
 import com.juanchiz.fishfeeder.work.PollingWorker;
 
 /** Contenedor principal: navegación inferior entre Inicio, Horarios, Estadísticas y Ajustes. */
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
         requestNotificationPermissionIfNeeded();
         PollingWorker.schedule(getApplicationContext());
+        DailySummaryWorker.schedule(getApplicationContext());
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         bottomNav.setOnItemSelectedListener(item -> {

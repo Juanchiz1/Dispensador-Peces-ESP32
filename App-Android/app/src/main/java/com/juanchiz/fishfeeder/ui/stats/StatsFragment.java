@@ -18,16 +18,19 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.juanchiz.fishfeeder.R;
 import com.juanchiz.fishfeeder.data.AppDatabase;
+import com.juanchiz.fishfeeder.data.FeedingEvent;
 import com.juanchiz.fishfeeder.data.SensorReading;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Muestra estadísticas construidas a partir del historial local (tabla Room),
@@ -41,6 +44,8 @@ public class StatsFragment extends Fragment {
     private TextView tvFeedingsToday;
     private LineChart chartHumidity;
     private LineChart chartLevel;
+    private android.widget.LinearLayout containerFeedingHistory;
+    private TextView tvHistoryEmpty;
 
     @Nullable
     @Override
@@ -57,6 +62,8 @@ public class StatsFragment extends Fragment {
         tvFeedingsToday = view.findViewById(R.id.tvFeedingsToday);
         chartHumidity = view.findViewById(R.id.chartHumidity);
         chartLevel = view.findViewById(R.id.chartLevel);
+        containerFeedingHistory = view.findViewById(R.id.containerFeedingHistory);
+        tvHistoryEmpty = view.findViewById(R.id.tvHistoryEmpty);
 
         setupChartStyle(chartHumidity);
         setupChartStyle(chartLevel);
@@ -91,6 +98,9 @@ public class StatsFragment extends Fragment {
             long midnightMillis = startOfTodayMillis();
             int feedingsToday = db.feedingEventDao().countSince(midnightMillis);
 
+            long sieteDiasAtras = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7);
+            List<FeedingEvent> historial = db.feedingEventDao().getSince(sieteDiasAtras);
+
             if (!isAdded()) return;
             requireActivity().runOnUiThread(() -> {
                 tvFeedingsToday.setText(String.valueOf(feedingsToday));
@@ -101,8 +111,57 @@ public class StatsFragment extends Fragment {
                     bindHumidityChart(recent);
                     bindLevelChart(recent);
                 }
+                bindFeedingHistory(historial);
             });
         });
+    }
+
+    private void bindFeedingHistory(List<FeedingEvent> eventos) {
+        // Quita las filas dibujadas en la carga anterior, dejando "tvHistoryEmpty" (primer hijo).
+        while (containerFeedingHistory.getChildCount() > 1) {
+            containerFeedingHistory.removeViewAt(containerFeedingHistory.getChildCount() - 1);
+        }
+
+        if (eventos.isEmpty()) {
+            tvHistoryEmpty.setVisibility(View.VISIBLE);
+            return;
+        }
+        tvHistoryEmpty.setVisibility(View.GONE);
+
+        SimpleDateFormat formato = new SimpleDateFormat("dd/MM HH:mm", Locale.getDefault());
+        for (FeedingEvent evento : eventos) {
+            android.widget.LinearLayout fila = new android.widget.LinearLayout(requireContext());
+            fila.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            fila.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            fila.setPadding(0, dpToPx(8), 0, dpToPx(8));
+
+            TextView tvFecha = new TextView(requireContext());
+            tvFecha.setText(formato.format(new Date(evento.timestampMillis)));
+            tvFecha.setTextSize(13);
+            tvFecha.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_primary_light));
+            android.widget.LinearLayout.LayoutParams paramsFecha = new android.widget.LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            fila.addView(tvFecha, paramsFecha);
+
+            TextView tvOrigen = new TextView(requireContext());
+            tvOrigen.setText(getString(evento.manual ? R.string.feeding_manual_label : R.string.feeding_scheduled_label));
+            tvOrigen.setTextSize(12);
+            tvOrigen.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_secondary_light));
+            tvOrigen.setPadding(dpToPx(8), 0, dpToPx(8), 0);
+            fila.addView(tvOrigen);
+
+            TextView tvPorciones = new TextView(requireContext());
+            tvPorciones.setText(getString(R.string.feeding_portions_format, evento.porciones));
+            tvPorciones.setTextSize(13);
+            tvPorciones.setTypeface(null, android.graphics.Typeface.BOLD);
+            fila.addView(tvPorciones);
+
+            containerFeedingHistory.addView(fila);
+        }
+    }
+
+    private int dpToPx(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
     private void bindHumidityChart(List<SensorReading> readings) {

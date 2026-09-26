@@ -29,6 +29,12 @@ public class FeederStatus {
     @SerializedName("ultima_alimentacion")
     public String ultimaAlimentacion;
 
+    @SerializedName("ultima_porciones")
+    public int ultimaPorciones;
+
+    @SerializedName("horarios_pausados")
+    public boolean horariosPausados;
+
     @SerializedName("hora_actual")
     public String horaActual;
 

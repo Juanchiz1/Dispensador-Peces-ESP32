@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5dfcc6b8-e22c-4a67-99b5-35732191dcdd" name="Changes" comment="Agregado de código del ESP32 para arduino ID" />
+    <list default="true" id="5dfcc6b8-e22c-4a67-99b5-35732191dcdd" name="Changes" comment="Agregar configuración de WiFi y sincronización de hora desde la app, mejorar colores de la interfaz&#10;&#10;- Firmware: credenciales WiFi guardadas en NVS (Preferences) con modo AP de respaldo&#10;  (&quot;PezFeeder-Config&quot;) y nuevos endpoints /api/wifi-config y /api/time&#10;- App: pantalla WifiConfigActivity para configurar/reconfigurar el WiFi del dispensador,&#10;  botón para sincronizar la hora del RTC con el celular&#10;- App: corrige tinte del bottom nav (item no seleccionado quedaba invisible), colores que&#10;  no se adaptaban a modo oscuro, y color fijo del banner de alertas" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -17,41 +17,41 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="UPDATE_TYPE" value="REBASE" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Juanchiz1"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Juanchiz1&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Juanchiz1/Dispensador-Peces-ESP32.git",
-    "accountId": "ebe0278b-d1a3-42fc-9ab6-4ca18e89284c"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Juanchiz1/Dispensador-Peces-ESP32.git&quot;,
+    &quot;accountId&quot;: &quot;ebe0278b-d1a3-42fc-9ab6-4ca18e89284c&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 3
-}]]></component>
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
   <component name="ProjectId" id="3JVIdtAz3KBewK3hcIIjBnlBwto" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Juan Diego/Documents/Universidad Documentos clases/PAS/Dispensador-Peces-ESP32"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Juan Diego/Documents/Universidad Documentos clases/PAS/Dispensador-Peces-ESP32&quot;
   }
-}]]></component>
+}</component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="5dfcc6b8-e22c-4a67-99b5-35732191dcdd" name="Changes" comment="" />
@@ -84,7 +84,15 @@
       <option name="project" value="LOCAL" />
       <updated>1789740552965</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Agregar configuración de WiFi y sincronización de hora desde la app, mejorar colores de la interfaz&#10;&#10;- Firmware: credenciales WiFi guardadas en NVS (Preferences) con modo AP de respaldo&#10;  (&quot;PezFeeder-Config&quot;) y nuevos endpoints /api/wifi-config y /api/time&#10;- App: pantalla WifiConfigActivity para configurar/reconfigurar el WiFi del dispensador,&#10;  botón para sincronizar la hora del RTC con el celular&#10;- App: corrige tinte del bottom nav (item no seleccionado quedaba invisible), colores que&#10;  no se adaptaban a modo oscuro, y color fijo del banner de alertas">
+      <option name="closed" value="true" />
+      <created>1790279310369</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1790279310369</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -101,6 +109,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Reorganiza el repo como monorepo: app, firmware,modelo 3D" />
     <MESSAGE value="Agregado de código del ESP32 para arduino ID" />
-    <option name="LAST_COMMIT_MESSAGE" value="Agregado de código del ESP32 para arduino ID" />
+    <MESSAGE value="Agregar configuración de WiFi y sincronización de hora desde la app, mejorar colores de la interfaz&#10;&#10;- Firmware: credenciales WiFi guardadas en NVS (Preferences) con modo AP de respaldo&#10;  (&quot;PezFeeder-Config&quot;) y nuevos endpoints /api/wifi-config y /api/time&#10;- App: pantalla WifiConfigActivity para configurar/reconfigurar el WiFi del dispensador,&#10;  botón para sincronizar la hora del RTC con el celular&#10;- App: corrige tinte del bottom nav (item no seleccionado quedaba invisible), colores que&#10;  no se adaptaban a modo oscuro, y color fijo del banner de alertas" />
+    <option name="LAST_COMMIT_MESSAGE" value="Agregar configuración de WiFi y sincronización de hora desde la app, mejorar colores de la interfaz&#10;&#10;- Firmware: credenciales WiFi guardadas en NVS (Preferences) con modo AP de respaldo&#10;  (&quot;PezFeeder-Config&quot;) y nuevos endpoints /api/wifi-config y /api/time&#10;- App: pantalla WifiConfigActivity para configurar/reconfigurar el WiFi del dispensador,&#10;  botón para sincronizar la hora del RTC con el celular&#10;- App: corrige tinte del bottom nav (item no seleccionado quedaba invisible), colores que&#10;  no se adaptaban a modo oscuro, y color fijo del banner de alertas" />
   </component>
 </project>

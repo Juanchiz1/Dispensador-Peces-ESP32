@@ -8,6 +8,11 @@
   Descubrimiento: mDNS — el dispensador se anuncia como http://pezfeeder.local,
   así la app no depende de que la IP del router se mantenga igual.
 
+  I2C: el DS3231 y el VL53L0X van en DOS buses I2C separados (el ESP32 tiene
+  dos controladores I2C independientes), en vez de compartir GPIO21/22:
+    - Bus 1 (Wire):        DS3231  -> SDA=GPIO21, SCL=GPIO22
+    - Bus 2 (I2C_Tolva):    VL53L0X -> SDA=GPIO32, SCL=GPIO33
+
   Antes de subir: revisa GUIA_ARMADO_DISPENSADOR.md, sección 5, para instalar
   las librerías necesarias, y ajusta las credenciales de WiFi más abajo.
 */
@@ -24,20 +29,38 @@
 #include <Preferences.h>
 
 // ---------------- CONFIGURACIÓN DE RED ----------------
-const char* WIFI_SSID     = "TECNO40";
-const char* WIFI_PASSWORD = "Julio4080";
+// Estos valores ahora son solo un respaldo inicial: la credencial real que se
+// usa en cada arranque se guarda en la memoria no volátil (Preferences) y se
+// puede configurar desde la app (ver /api/wifi-config más abajo), sin
+// reflashear el ESP32.
+const char* WIFI_SSID_DEFECTO     = "TU_RED_WIFI";
+const char* WIFI_PASSWORD_DEFECTO = "TU_CONTRASENA";
 
 // Nombre mDNS: el dispensador queda accesible en http://pezfeeder.local
 // sin importar qué IP le asigne el router. Si tienes varios tanques,
 // cambia este nombre por uno distinto en cada ESP32 (ej: "pezfeeder-tanque2").
 const char* MDNS_HOSTNAME = "pezfeeder";
 
+// Red WiFi propia que crea el ESP32 cuando no logra conectarse a la red de
+// casa (o cuando aún no se ha configurado ninguna). El celular se conecta a
+// esta red temporalmente para enviarle el WiFi real desde la app.
+const char* AP_SSID     = "PezFeeder-Config";
+const char* AP_PASSWORD = "pezfeeder123"; // mínimo 8 caracteres
+
 // ---------------- PINES ----------------
 #define PIN_DHT22          4
 #define PIN_SERVO          13
 #define PIN_MOTOR_VIBRADOR 27
+
+// Bus I2C 1 (Wire): reloj DS3231
 #define PIN_SDA            21
 #define PIN_SCL            22
+
+// Bus I2C 2 (I2C_Tolva): sensor de nivel VL53L0X, en pines propios para no
+// compartir SDA/SCL con el DS3231
+#define PIN_SDA_TOLVA       32
+#define PIN_SCL_TOLVA       33
+
 #define DHT_TYPE           DHT22
 
 // ---------------- UMBRALES (calibrar con el hardware real) ----------------
@@ -66,6 +89,7 @@ int numHorarios = 0;
 DHT dht(PIN_DHT22, DHT_TYPE);
 RTC_DS3231 rtc;
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+TwoWire I2C_Tolva = TwoWire(1); // segundo controlador I2C del ESP32, solo para el VL53L0X
 Servo servoTornillo;
 WebServer server(80);
 Preferences prefs;
@@ -79,6 +103,7 @@ bool humedadAltaAlerta = false;
 String ultimaAlimentacion = "Nunca";
 unsigned long ultimoDHT = 0;
 int lastMinuteChecked = -1;
+bool modoAP = false; // true cuando el ESP32 está en su propia red de configuración
 
 const char PAGINA_HTML[] PROGMEM = R"HTMLPAGE(
 <!DOCTYPE html>
@@ -131,6 +156,13 @@ const char PAGINA_HTML[] PROGMEM = R"HTMLPAGE(
   <button onclick="guardarHorarios()">Guardar horarios</button>
 </div>
 
+<div class="card">
+  <p>WiFi: <span id="v-wifi">--</span></p>
+  <input type="text" id="nuevoSsid" placeholder="Nombre de la red (SSID)">
+  <input type="password" id="nuevaPass" placeholder="Contraseña">
+  <button onclick="configurarWifi()">Guardar y reiniciar</button>
+</div>
+
 <script>
 async function actualizarEstado(){
   try {
@@ -141,6 +173,9 @@ async function actualizarEstado(){
     document.getElementById('v-nivel').textContent = d.nivel_tolva_pct;
     document.getElementById('v-hora').textContent = d.hora_actual;
     document.getElementById('v-ultima').textContent = d.ultima_alimentacion;
+    document.getElementById('v-wifi').textContent = d.modo_ap
+      ? ('Modo configuración (red "' + d.wifi_ssid + '")')
+      : (d.wifi_ssid + ' · ' + d.wifi_rssi + ' dBm');
     let alertas = [];
     if (d.tolva_vacia) alertas.push('Tolva casi vacía');
     if (d.humedad_alta) alertas.push('Humedad alta en el alimento');
@@ -191,6 +226,18 @@ async function guardarHorarios(){
   alert('Horarios guardados');
 }
 
+async function configurarWifi(){
+  const ssid = document.getElementById('nuevoSsid').value.trim();
+  const password = document.getElementById('nuevaPass').value;
+  if (!ssid) { alert('Escribe el nombre de la red'); return; }
+  await fetch('/api/wifi-config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ssid, password })
+  });
+  alert('Guardado. El dispensador se reiniciará e intentará conectarse a "' + ssid + '".');
+}
+
 cargarHorarios();
 actualizarEstado();
 setInterval(actualizarEstado, 4000);
@@ -199,10 +246,63 @@ setInterval(actualizarEstado, 4000);
 </html>
 )HTMLPAGE";
 
+// Lee el SSID/contraseña guardados en Preferences. Si nunca se ha
+// configurado nada desde la app, cae en los valores por defecto de arriba.
+void cargarCredencialesWiFi(String &ssid, String &password) {
+  prefs.begin("feeder", true);
+  ssid = prefs.getString("wifi_ssid", "");
+  password = prefs.getString("wifi_pass", "");
+  prefs.end();
+
+  if (ssid.length() == 0) {
+    ssid = WIFI_SSID_DEFECTO;
+    password = WIFI_PASSWORD_DEFECTO;
+  }
+}
+
+void guardarCredencialesWiFi(const String &ssid, const String &password) {
+  prefs.begin("feeder", false);
+  prefs.putString("wifi_ssid", ssid);
+  prefs.putString("wifi_pass", password);
+  prefs.end();
+}
+
+void iniciarMDNS() {
+  if (MDNS.begin(MDNS_HOSTNAME)) {
+    MDNS.addService("http", "tcp", 80);
+    Serial.print("mDNS activo. Panel de control: http://");
+    Serial.print(MDNS_HOSTNAME);
+    Serial.println(".local  (esta dirección no cambia aunque cambie la IP)");
+  } else {
+    Serial.println("ADVERTENCIA: no se pudo iniciar mDNS. Usa la IP directamente.");
+  }
+}
+
+// Levanta la red propia del ESP32 (192.168.4.1) para que la app pueda
+// conectarse y enviarle el WiFi real mediante POST /api/wifi-config.
+void iniciarModoAP() {
+  modoAP = true;
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(AP_SSID, AP_PASSWORD);
+  Serial.println("No se pudo conectar a la red guardada.");
+  Serial.print("Modo configuración activo. Conéctate a la red WiFi \"");
+  Serial.print(AP_SSID);
+  Serial.println("\" desde la app para configurar tu WiFi.");
+  Serial.print("IP del dispensador en modo configuración: http://");
+  Serial.println(WiFi.softAPIP());
+  iniciarMDNS();
+}
+
 void conectarWiFi() {
+  String ssid, password;
+  cargarCredencialesWiFi(ssid, password);
+
+  modoAP = false;
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Conectando a WiFi");
+  WiFi.begin(ssid.c_str(), password.c_str());
+  Serial.print("Conectando a WiFi \"");
+  Serial.print(ssid);
+  Serial.print("\"");
   int intentos = 0;
   while (WiFi.status() != WL_CONNECTED && intentos < 40) {
     delay(500);
@@ -210,20 +310,13 @@ void conectarWiFi() {
     intentos++;
   }
   Serial.println();
+
   if (WiFi.status() == WL_CONNECTED) {
     Serial.print("Conectado. IP asignada: http://");
     Serial.println(WiFi.localIP());
-
-    if (MDNS.begin(MDNS_HOSTNAME)) {
-      MDNS.addService("http", "tcp", 80);
-      Serial.print("mDNS activo. Panel de control: http://");
-      Serial.print(MDNS_HOSTNAME);
-      Serial.println(".local  (esta dirección no cambia aunque cambie la IP)");
-    } else {
-      Serial.println("ADVERTENCIA: no se pudo iniciar mDNS. Usa la IP directamente.");
-    }
+    iniciarMDNS();
   } else {
-    Serial.println("No se pudo conectar. Revisa WIFI_SSID y WIFI_PASSWORD.");
+    iniciarModoAP();
   }
 }
 
@@ -351,10 +444,78 @@ void handleStatus() {
   char buf[6];
   sprintf(buf, "%02d:%02d", ahora.hour(), ahora.minute());
   doc["hora_actual"] = buf;
-  doc["wifi_rssi"] = WiFi.RSSI();
+  doc["fecha_actual"] = String(ahora.year()) + "-" +
+                         (ahora.month() < 10 ? "0" : "") + String(ahora.month()) + "-" +
+                         (ahora.day() < 10 ? "0" : "") + String(ahora.day());
+  doc["modo_ap"] = modoAP;
+  doc["wifi_ssid"] = modoAP ? AP_SSID : WiFi.SSID();
+  doc["wifi_rssi"] = modoAP ? 0 : WiFi.RSSI();
   String salida;
   serializeJson(doc, salida);
   server.send(200, "application/json", salida);
+}
+
+// GET /api/wifi-config -> devuelve el nombre de la red actualmente
+// configurada (sin la contraseña) para mostrarlo en la app.
+void handleGetWifiConfig() {
+  String ssid, password;
+  cargarCredencialesWiFi(ssid, password);
+  StaticJsonDocument<256> doc;
+  doc["ssid"] = ssid;
+  doc["modo_ap"] = modoAP;
+  String salida;
+  serializeJson(doc, salida);
+  server.send(200, "application/json", salida);
+}
+
+// POST /api/wifi-config  body: {"ssid":"...", "password":"..."}
+// Guarda las credenciales nuevas y reinicia el ESP32 para que intente
+// conectarse a la red indicada. Si falla, vuelve a modo configuración solo.
+void handlePostWifiConfig() {
+  if (!server.hasArg("plain")) {
+    server.send(400, "application/json", "{\"error\":\"sin datos\"}");
+    return;
+  }
+  StaticJsonDocument<256> doc;
+  if (deserializeJson(doc, server.arg("plain")) != DeserializationError::Ok) {
+    server.send(400, "application/json", "{\"error\":\"json invalido\"}");
+    return;
+  }
+  String nuevoSsid = doc["ssid"] | "";
+  String nuevaPass = doc["password"] | "";
+  if (nuevoSsid.length() == 0) {
+    server.send(400, "application/json", "{\"error\":\"ssid vacio\"}");
+    return;
+  }
+  guardarCredencialesWiFi(nuevoSsid, nuevaPass);
+  server.send(200, "application/json", "{\"ok\":true,\"mensaje\":\"Reiniciando para conectar a la nueva red...\"}");
+  server.handleClient(); // asegura que la respuesta salga antes de reiniciar
+  delay(500);
+  ESP.restart();
+}
+
+// POST /api/time  body: {"anio":2026,"mes":9,"dia":24,"hora":14,"minuto":30,"segundo":0}
+// Sincroniza el reloj DS3231 con la hora local del celular.
+void handleSetTime() {
+  if (!server.hasArg("plain")) {
+    server.send(400, "application/json", "{\"error\":\"sin datos\"}");
+    return;
+  }
+  StaticJsonDocument<256> doc;
+  if (deserializeJson(doc, server.arg("plain")) != DeserializationError::Ok) {
+    server.send(400, "application/json", "{\"error\":\"json invalido\"}");
+    return;
+  }
+  int anio   = doc["anio"]   | 2026;
+  int mes    = doc["mes"]    | 1;
+  int dia    = doc["dia"]    | 1;
+  int hora   = doc["hora"]   | 0;
+  int minuto = doc["minuto"] | 0;
+  int segundo = doc["segundo"] | 0;
+
+  rtc.adjust(DateTime(anio, mes, dia, hora, minuto, segundo));
+  lastMinuteChecked = -1; // fuerza a revisarHorarios() a recalcular con la hora nueva
+  server.send(200, "application/json", "{\"ok\":true}");
 }
 
 void handleFeedNow() {
@@ -408,6 +569,9 @@ void setupServidorWeb() {
   server.on("/api/feed", HTTP_POST, handleFeedNow);
   server.on("/api/schedule", HTTP_GET, handleGetSchedule);
   server.on("/api/schedule", HTTP_POST, handleSetSchedule);
+  server.on("/api/wifi-config", HTTP_GET, handleGetWifiConfig);
+  server.on("/api/wifi-config", HTTP_POST, handlePostWifiConfig);
+  server.on("/api/time", HTTP_POST, handleSetTime);
   server.begin();
 }
 
@@ -422,16 +586,20 @@ void setup() {
   servoTornillo.attach(PIN_SERVO, 500, 2400);
   servoTornillo.write(SERVO_ANGULO_REPOSO);
 
+  // Bus I2C 1: reloj DS3231
   Wire.begin(PIN_SDA, PIN_SCL);
+  // Bus I2C 2: sensor de nivel VL53L0X, en sus propios pines
+  I2C_Tolva.begin(PIN_SDA_TOLVA, PIN_SCL_TOLVA);
+
   dht.begin();
 
-  if (!rtc.begin()) {
+  if (!rtc.begin(&Wire)) {
     Serial.println("ERROR: no se detectó el DS3231. Revisa el cableado I2C.");
   } else if (rtc.lostPower()) {
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
 
-  if (!lox.begin()) {
+  if (!lox.begin(VL53L0X_I2C_ADDR, false, &I2C_Tolva)) {
     Serial.println("ERROR: no se detectó el VL53L0X. Revisa el cableado I2C.");
   }
 

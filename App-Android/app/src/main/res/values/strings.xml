@@ -80,4 +80,23 @@
 
     <string name="notif_channel_name">Alertas del dispensador</string>
     <string name="notif_channel_desc">Avisos de tolva vacía y humedad alta</string>
+    <string name="notif_daily_summary_title">Resumen del día</string>
+    <string name="notif_daily_summary_body">%1$d alimentaciones · Humedad prom. %2$s · Nivel actual %3$s</string>
+    <string name="settings_notify_daily_summary">Resumen diario</string>
+
+    <string name="stats_history_title">Historial de alimentaciones</string>
+    <string name="stats_history_empty">Todavía no se ha registrado ninguna alimentación.</string>
+    <string name="feeding_manual_label">Manual</string>
+    <string name="feeding_scheduled_label">Programada</string>
+    <string name="feeding_portions_format">%1$d porción(es)</string>
+
+    <string name="label_days_remaining">Alimento restante estimado</string>
+    <string name="days_remaining_format">≈%d días</string>
+    <string name="days_remaining_less_than_one">Menos de 1 día</string>
+
+    <string name="settings_vacation_mode">Modo vacaciones</string>
+    <string name="settings_vacation_mode_desc">Pausa todos los horarios de alimentación sin borrarlos. Útil si alguien más cuida los peces o si necesitas detener la alimentación automática temporalmente.</string>
+    <string name="vacation_mode_active_banner">Modo vacaciones activado: los horarios quedaron en pausa</string>
+    <string name="vacation_mode_resumed">Modo vacaciones desactivado: los horarios volvieron a activarse</string>
+    <string name="vacation_mode_error">No se pudo cambiar el modo vacaciones. Verifica la conexión con el dispensador.</string>
 </resources>
