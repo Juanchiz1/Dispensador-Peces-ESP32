@@ -37,6 +37,7 @@ public class PollingWorker extends Worker {
     private static final int NOTIF_ID_EMPTY = 1;
     private static final int NOTIF_ID_HUMIDITY = 2;
     private static final int NOTIF_ID_TEMPERATURE = 4;
+    private static final int NOTIF_ID_JAM = 5;
 
     public PollingWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -102,6 +103,12 @@ public class PollingWorker extends Worker {
                 NotificationHelper.notify(context, NOTIF_ID_TEMPERATURE, mensaje);
             } else {
                 NotificationManagerCompat.from(context).cancel(NOTIF_ID_TEMPERATURE);
+            }
+
+            if (status.posibleAtasco && prefs.isNotifyJamEnabled()) {
+                NotificationHelper.notify(context, NOTIF_ID_JAM, context.getString(R.string.alert_jam));
+            } else {
+                NotificationManagerCompat.from(context).cancel(NOTIF_ID_JAM);
             }
 
             // Purga lecturas de más de 30 días para no crecer indefinidamente.

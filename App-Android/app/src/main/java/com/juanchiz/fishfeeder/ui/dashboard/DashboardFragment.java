@@ -180,12 +180,18 @@ public class DashboardFragment extends Fragment {
             if (alertText.length() > 0) alertText.append(" · ");
             alertText.append(getString(R.string.alert_temp_low));
         }
+        if (status.posibleAtasco) {
+            if (alertText.length() > 0) alertText.append(" · ");
+            alertText.append(getString(R.string.alert_jam));
+        }
 
         if (alertText.length() > 0) {
             alertBanner.setVisibility(View.VISIBLE);
-            // Tolva vacía es más urgente que humedad alta, así que decide el color del banner.
-            int bgColorRes = status.tolvaVacia ? R.color.alert_danger_bg : R.color.alert_warning_bg;
-            int textColorRes = status.tolvaVacia ? R.color.alert_danger : R.color.alert_warning;
+            // Tolva vacía o un posible atasco son más urgentes que humedad/temperatura, así que
+            // deciden el color del banner.
+            boolean esUrgente = status.tolvaVacia || status.posibleAtasco;
+            int bgColorRes = esUrgente ? R.color.alert_danger_bg : R.color.alert_warning_bg;
+            int textColorRes = esUrgente ? R.color.alert_danger : R.color.alert_warning;
             int bgColor = androidx.core.content.ContextCompat.getColor(requireContext(), bgColorRes);
             int textColor = androidx.core.content.ContextCompat.getColor(requireContext(), textColorRes);
 

@@ -64,9 +64,18 @@ const char* AP_PASSWORD = "pezfeeder123"; // mínimo 8 caracteres
 #define DHT_TYPE           DHT22
 
 // ---------------- UMBRALES (calibrar con el hardware real) ----------------
+// Estos valores son solo el respaldo inicial: cargarUmbrales() los sobrescribe con lo
+// guardado en Preferences (si ya se configuraron desde la app) al arrancar. Se pueden
+// consultar/cambiar en caliente vía GET/POST /api/thresholds, sin reflashear el ESP32.
 float    UMBRAL_HUMEDAD_PORCENTAJE   = 65.0;
+float    UMBRAL_TEMP_MIN             = 18.0;
+float    UMBRAL_TEMP_MAX             = 30.0;
 uint16_t DISTANCIA_TOLVA_LLENA_MM    = 30;
 uint16_t DISTANCIA_TOLVA_VACIA_MM    = 140;
+// Cuánto debe aumentar la distancia del VL53L0X (mm) tras una alimentación para considerar que
+// sí salió alimento. Si cambia menos que esto (y la tolva no estaba ya vacía), se asume que el
+// tornillo/servo se atascó. Depende del hardware real, por eso también es configurable.
+float    UMBRAL_CAMBIO_MINIMO_MM     = 2.0;
 
 // ---------------- PARÁMETROS DEL ACTUADOR (tornillo corto, ver guía punto 0.3) ----------------
 const int SERVO_ANGULO_REPOSO   = 0;
@@ -100,6 +109,10 @@ uint16_t distanciaActualMM = 0;
 int nivelTolvaPorcentaje = 0;
 bool tolvaVaciaAlerta = false;
 bool humedadAltaAlerta = false;
+bool temperaturaAltaAlerta = false;
+bool temperaturaBajaAlerta = false;
+bool huboLecturaValidaDHT = false; // evita falsas alarmas de temperatura antes de la primera lectura
+bool posibleAtascoAlerta = false; // el nivel de la tolva no cambió tras la última alimentación
 String ultimaAlimentacion = "Nunca";
 int ultimaPorciones = 0;
 unsigned long ultimoDHT = 0;
@@ -164,6 +177,17 @@ const char PAGINA_HTML[] PROGMEM = R"HTMLPAGE(
 </div>
 
 <div class="card">
+  <p>Umbrales de alerta</p>
+  <div class="fila-horario"><span style="flex:1">Humedad máxima (%)</span><input type="number" id="uHumedad" step="0.1" style="width:80px"></div>
+  <div class="fila-horario"><span style="flex:1">Temperatura mínima (°C)</span><input type="number" id="uTempMin" step="0.1" style="width:80px"></div>
+  <div class="fila-horario"><span style="flex:1">Temperatura máxima (°C)</span><input type="number" id="uTempMax" step="0.1" style="width:80px"></div>
+  <div class="fila-horario"><span style="flex:1">Distancia tolva llena (mm)</span><input type="number" id="uTolvaLlena" style="width:80px"></div>
+  <div class="fila-horario"><span style="flex:1">Distancia tolva vacía (mm)</span><input type="number" id="uTolvaVacia" style="width:80px"></div>
+  <div class="fila-horario"><span style="flex:1">Cambio mínimo tras alimentar (mm)</span><input type="number" id="uCambioMinimo" step="0.1" style="width:80px"></div>
+  <button onclick="guardarUmbrales()">Guardar umbrales</button>
+</div>
+
+<div class="card">
   <p>WiFi: <span id="v-wifi">--</span></p>
   <input type="text" id="nuevoSsid" placeholder="Nombre de la red (SSID)">
   <input type="password" id="nuevaPass" placeholder="Contraseña">
@@ -190,9 +214,42 @@ async function actualizarEstado(){
     let alertas = [];
     if (d.tolva_vacia) alertas.push('Tolva casi vacía');
     if (d.humedad_alta) alertas.push('Humedad alta en el alimento');
+    if (d.temperatura_alta) alertas.push('Temperatura alta');
+    if (d.temperatura_baja) alertas.push('Temperatura baja');
+    if (d.posible_atasco) alertas.push('Posible atasco del servo/tornillo');
     document.getElementById('alertas').innerHTML = alertas.length
       ? '<span class="alerta">' + alertas.join(' · ') + '</span>' : '';
   } catch(e) { console.log('error de estado', e); }
+}
+
+async function cargarUmbrales(){
+  try {
+    const r = await fetch('/api/thresholds');
+    const u = await r.json();
+    document.getElementById('uHumedad').value = u.humedad_max;
+    document.getElementById('uTempMin').value = u.temperatura_min;
+    document.getElementById('uTempMax').value = u.temperatura_max;
+    document.getElementById('uTolvaLlena').value = u.tolva_llena_mm;
+    document.getElementById('uTolvaVacia').value = u.tolva_vacia_mm;
+    document.getElementById('uCambioMinimo').value = u.cambio_minimo_mm;
+  } catch(e) { console.log('error de umbrales', e); }
+}
+
+async function guardarUmbrales(){
+  const datos = {
+    humedad_max: parseFloat(document.getElementById('uHumedad').value),
+    temperatura_min: parseFloat(document.getElementById('uTempMin').value),
+    temperatura_max: parseFloat(document.getElementById('uTempMax').value),
+    tolva_llena_mm: parseInt(document.getElementById('uTolvaLlena').value),
+    tolva_vacia_mm: parseInt(document.getElementById('uTolvaVacia').value),
+    cambio_minimo_mm: parseFloat(document.getElementById('uCambioMinimo').value)
+  };
+  await fetch('/api/thresholds', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos)
+  });
+  alert('Umbrales guardados');
 }
 
 async function alimentarAhora(){
@@ -259,6 +316,7 @@ async function configurarWifi(){
 }
 
 cargarHorarios();
+cargarUmbrales();
 actualizarEstado();
 setInterval(actualizarEstado, 4000);
 </script>
@@ -391,7 +449,13 @@ void leerSensores() {
     float t = dht.readTemperature();
     if (!isnan(h)) humedadActual = h;
     if (!isnan(t)) temperaturaActual = t;
+    if (!isnan(h) || !isnan(t)) huboLecturaValidaDHT = true;
+
     humedadAltaAlerta = (humedadActual >= UMBRAL_HUMEDAD_PORCENTAJE);
+    // Sin una lectura válida todavía, temperaturaActual sigue en 0 y dispararía una falsa
+    // alarma de "temperatura baja"; se ignora hasta que el DHT22 responda al menos una vez.
+    temperaturaAltaAlerta = huboLecturaValidaDHT && (temperaturaActual >= UMBRAL_TEMP_MAX);
+    temperaturaBajaAlerta = huboLecturaValidaDHT && (temperaturaActual <= UMBRAL_TEMP_MIN);
   }
 
   VL53L0X_RangingMeasurementData_t medida;
@@ -406,8 +470,23 @@ void leerSensores() {
   }
 }
 
+// Lectura puntual del VL53L0X (fuera del muestreo continuo de leerSensores). Si la medición no
+// es válida, devuelve la última distancia conocida en vez de un valor inventado.
+uint16_t leerDistanciaUnaVez() {
+  VL53L0X_RangingMeasurementData_t medida;
+  lox.rangingTest(&medida, false);
+  if (medida.RangeStatus != 4) return medida.RangeMilliMeter;
+  return distanciaActualMM;
+}
+
 void alimentar(int porciones) {
   Serial.printf("Alimentando: %d porcion(es)\n", porciones);
+
+  // Si la tolva ya estaba vacía antes de empezar, un cambio pequeño es normal (no queda comida
+  // que mover) y no debe confundirse con un atasco del tornillo/servo.
+  bool tolvaYaEstabaVacia = tolvaVaciaAlerta;
+  uint16_t distanciaAntes = leerDistanciaUnaVez();
+
   for (int p = 0; p < porciones; p++) {
     for (int c = 0; c < CICLOS_POR_PORCION; c++) {
       servoTornillo.write(SERVO_ANGULO_DISPENSA);
@@ -420,11 +499,42 @@ void alimentar(int porciones) {
     digitalWrite(PIN_MOTOR_VIBRADOR, LOW);
     delay(200);
   }
+
+  uint16_t distanciaDespues = leerDistanciaUnaVez();
+  if (tolvaYaEstabaVacia) {
+    posibleAtascoAlerta = false; // ya se sabe que el problema es falta de alimento, no atasco
+  } else {
+    float cambioMM = (float)distanciaDespues - (float)distanciaAntes;
+    posibleAtascoAlerta = (cambioMM < UMBRAL_CAMBIO_MINIMO_MM);
+  }
+
   DateTime ahora = rtc.now();
   char buf[20];
   sprintf(buf, "%02d/%02d %02d:%02d", ahora.day(), ahora.month(), ahora.hour(), ahora.minute());
   ultimaAlimentacion = String(buf);
   ultimaPorciones = porciones;
+}
+
+void cargarUmbrales() {
+  prefs.begin("feeder", true);
+  UMBRAL_HUMEDAD_PORCENTAJE = prefs.getFloat("hum_max", UMBRAL_HUMEDAD_PORCENTAJE);
+  UMBRAL_TEMP_MIN = prefs.getFloat("temp_min", UMBRAL_TEMP_MIN);
+  UMBRAL_TEMP_MAX = prefs.getFloat("temp_max", UMBRAL_TEMP_MAX);
+  DISTANCIA_TOLVA_LLENA_MM = prefs.getUShort("tolva_llena", DISTANCIA_TOLVA_LLENA_MM);
+  DISTANCIA_TOLVA_VACIA_MM = prefs.getUShort("tolva_vacia", DISTANCIA_TOLVA_VACIA_MM);
+  UMBRAL_CAMBIO_MINIMO_MM = prefs.getFloat("cambio_min", UMBRAL_CAMBIO_MINIMO_MM);
+  prefs.end();
+}
+
+void guardarUmbrales() {
+  prefs.begin("feeder", false);
+  prefs.putFloat("hum_max", UMBRAL_HUMEDAD_PORCENTAJE);
+  prefs.putFloat("temp_min", UMBRAL_TEMP_MIN);
+  prefs.putFloat("temp_max", UMBRAL_TEMP_MAX);
+  prefs.putUShort("tolva_llena", DISTANCIA_TOLVA_LLENA_MM);
+  prefs.putFloat("cambio_min", UMBRAL_CAMBIO_MINIMO_MM);
+  prefs.putUShort("tolva_vacia", DISTANCIA_TOLVA_VACIA_MM);
+  prefs.end();
 }
 
 void cargarPausa() {
@@ -474,7 +584,10 @@ void handleStatus() {
   doc["distancia_mm"] = distanciaActualMM;
   doc["nivel_tolva_pct"] = nivelTolvaPorcentaje;
   doc["tolva_vacia"] = tolvaVaciaAlerta;
+  doc["posible_atasco"] = posibleAtascoAlerta;
   doc["humedad_alta"] = humedadAltaAlerta;
+  doc["temperatura_alta"] = temperaturaAltaAlerta;
+  doc["temperatura_baja"] = temperaturaBajaAlerta;
   doc["ultima_alimentacion"] = ultimaAlimentacion;
   doc["ultima_porciones"] = ultimaPorciones;
   doc["horarios_pausados"] = horariosPausados;
@@ -582,6 +695,43 @@ void handleSetPause() {
   server.send(200, "application/json", "{\"ok\":true}");
 }
 
+// GET /api/thresholds -> valores actuales de calibración/alerta.
+void handleGetThresholds() {
+  StaticJsonDocument<256> doc;
+  doc["humedad_max"] = UMBRAL_HUMEDAD_PORCENTAJE;
+  doc["temperatura_min"] = UMBRAL_TEMP_MIN;
+  doc["temperatura_max"] = UMBRAL_TEMP_MAX;
+  doc["tolva_llena_mm"] = DISTANCIA_TOLVA_LLENA_MM;
+  doc["tolva_vacia_mm"] = DISTANCIA_TOLVA_VACIA_MM;
+  doc["cambio_minimo_mm"] = UMBRAL_CAMBIO_MINIMO_MM;
+  String salida;
+  serializeJson(doc, salida);
+  server.send(200, "application/json", salida);
+}
+
+// POST /api/thresholds  body: {"humedad_max":65,"temperatura_min":18,"temperatura_max":30,
+//                               "tolva_llena_mm":30,"tolva_vacia_mm":140,"cambio_minimo_mm":2}
+// Cualquier campo que falte conserva su valor actual (no hace falta mandarlos todos).
+void handleSetThresholds() {
+  if (!server.hasArg("plain")) {
+    server.send(400, "application/json", "{\"error\":\"sin datos\"}");
+    return;
+  }
+  StaticJsonDocument<256> doc;
+  if (deserializeJson(doc, server.arg("plain")) != DeserializationError::Ok) {
+    server.send(400, "application/json", "{\"error\":\"json invalido\"}");
+    return;
+  }
+  UMBRAL_HUMEDAD_PORCENTAJE = doc["humedad_max"] | UMBRAL_HUMEDAD_PORCENTAJE;
+  UMBRAL_TEMP_MIN = doc["temperatura_min"] | UMBRAL_TEMP_MIN;
+  UMBRAL_TEMP_MAX = doc["temperatura_max"] | UMBRAL_TEMP_MAX;
+  UMBRAL_CAMBIO_MINIMO_MM = doc["cambio_minimo_mm"] | UMBRAL_CAMBIO_MINIMO_MM;
+  DISTANCIA_TOLVA_LLENA_MM = doc["tolva_llena_mm"] | DISTANCIA_TOLVA_LLENA_MM;
+  DISTANCIA_TOLVA_VACIA_MM = doc["tolva_vacia_mm"] | DISTANCIA_TOLVA_VACIA_MM;
+  guardarUmbrales();
+  server.send(200, "application/json", "{\"ok\":true}");
+}
+
 void handleFeedNow() {
   int porciones = 1;
   if (server.hasArg("porciones")) porciones = server.arg("porciones").toInt();
@@ -638,6 +788,8 @@ void setupServidorWeb() {
   server.on("/api/time", HTTP_POST, handleSetTime);
   server.on("/api/pause", HTTP_GET, handleGetPause);
   server.on("/api/pause", HTTP_POST, handleSetPause);
+  server.on("/api/thresholds", HTTP_GET, handleGetThresholds);
+  server.on("/api/thresholds", HTTP_POST, handleSetThresholds);
   server.begin();
 }
 
@@ -671,6 +823,7 @@ void setup() {
 
   cargarHorarios();
   cargarPausa();
+  cargarUmbrales();
   conectarWiFi();
   setupServidorWeb();
 

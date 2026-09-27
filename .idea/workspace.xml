@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5dfcc6b8-e22c-4a67-99b5-35732191dcdd" name="Changes" comment="Agregar historial de alimentaciones, alerta de días restantes, modo vacaciones y resumen diario&#10;&#10;- Firmware: reporta porciones de la última alimentación, agrega endpoint /api/pause&#10;  para pausar/reanudar horarios sin borrarlos (modo vacaciones)&#10;- App: registra cada alimentación (manual/programada) en Room y la muestra en&#10;  Estadísticas; estima días de alimento restantes según la tasa de consumo de la tolva&#10;- App: switch de modo vacaciones en Ajustes (sincronizado con el dispensador) y&#10;  notificación de resumen diario (alimentaciones, humedad promedio, nivel actual)" />
+    <list default="true" id="5dfcc6b8-e22c-4a67-99b5-35732191dcdd" name="Changes" comment="Agregar historial de temperatura, umbrales configurables y arreglar ícono de la app&#10;&#10;- App: nueva gráfica de temperatura en Estadísticas&#10;- Firmware: humedad máxima, rango de temperatura normal y distancias de la tolva&#10;  ahora se guardan en NVS y se configuran vía /api/thresholds, con alertas de&#10;  temperatura alta/baja en el estado&#10;- App: pantalla &quot;Configurar umbrales&quot; en Ajustes, con sus alertas y notificación&#10;  correspondiente&#10;- Corrige el ícono adaptativo de la app: el pez se salía de la zona segura del&#10;  ícono y se veía recortado en el launcher" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -100,7 +100,15 @@
       <option name="project" value="LOCAL" />
       <updated>1790382096986</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Agregar historial de temperatura, umbrales configurables y arreglar ícono de la app&#10;&#10;- App: nueva gráfica de temperatura en Estadísticas&#10;- Firmware: humedad máxima, rango de temperatura normal y distancias de la tolva&#10;  ahora se guardan en NVS y se configuran vía /api/thresholds, con alertas de&#10;  temperatura alta/baja en el estado&#10;- App: pantalla &quot;Configurar umbrales&quot; en Ajustes, con sus alertas y notificación&#10;  correspondiente&#10;- Corrige el ícono adaptativo de la app: el pez se salía de la zona segura del&#10;  ícono y se veía recortado en el launcher">
+      <option name="closed" value="true" />
+      <created>1790524187779</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1790524187779</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -119,6 +127,7 @@
     <MESSAGE value="Agregado de código del ESP32 para arduino ID" />
     <MESSAGE value="Agregar configuración de WiFi y sincronización de hora desde la app, mejorar colores de la interfaz&#10;&#10;- Firmware: credenciales WiFi guardadas en NVS (Preferences) con modo AP de respaldo&#10;  (&quot;PezFeeder-Config&quot;) y nuevos endpoints /api/wifi-config y /api/time&#10;- App: pantalla WifiConfigActivity para configurar/reconfigurar el WiFi del dispensador,&#10;  botón para sincronizar la hora del RTC con el celular&#10;- App: corrige tinte del bottom nav (item no seleccionado quedaba invisible), colores que&#10;  no se adaptaban a modo oscuro, y color fijo del banner de alertas" />
     <MESSAGE value="Agregar historial de alimentaciones, alerta de días restantes, modo vacaciones y resumen diario&#10;&#10;- Firmware: reporta porciones de la última alimentación, agrega endpoint /api/pause&#10;  para pausar/reanudar horarios sin borrarlos (modo vacaciones)&#10;- App: registra cada alimentación (manual/programada) en Room y la muestra en&#10;  Estadísticas; estima días de alimento restantes según la tasa de consumo de la tolva&#10;- App: switch de modo vacaciones en Ajustes (sincronizado con el dispensador) y&#10;  notificación de resumen diario (alimentaciones, humedad promedio, nivel actual)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Agregar historial de alimentaciones, alerta de días restantes, modo vacaciones y resumen diario&#10;&#10;- Firmware: reporta porciones de la última alimentación, agrega endpoint /api/pause&#10;  para pausar/reanudar horarios sin borrarlos (modo vacaciones)&#10;- App: registra cada alimentación (manual/programada) en Room y la muestra en&#10;  Estadísticas; estima días de alimento restantes según la tasa de consumo de la tolva&#10;- App: switch de modo vacaciones en Ajustes (sincronizado con el dispensador) y&#10;  notificación de resumen diario (alimentaciones, humedad promedio, nivel actual)" />
+    <MESSAGE value="Agregar historial de temperatura, umbrales configurables y arreglar ícono de la app&#10;&#10;- App: nueva gráfica de temperatura en Estadísticas&#10;- Firmware: humedad máxima, rango de temperatura normal y distancias de la tolva&#10;  ahora se guardan en NVS y se configuran vía /api/thresholds, con alertas de&#10;  temperatura alta/baja en el estado&#10;- App: pantalla &quot;Configurar umbrales&quot; en Ajustes, con sus alertas y notificación&#10;  correspondiente&#10;- Corrige el ícono adaptativo de la app: el pez se salía de la zona segura del&#10;  ícono y se veía recortado en el launcher" />
+    <option name="LAST_COMMIT_MESSAGE" value="Agregar historial de temperatura, umbrales configurables y arreglar ícono de la app&#10;&#10;- App: nueva gráfica de temperatura en Estadísticas&#10;- Firmware: humedad máxima, rango de temperatura normal y distancias de la tolva&#10;  ahora se guardan en NVS y se configuran vía /api/thresholds, con alertas de&#10;  temperatura alta/baja en el estado&#10;- App: pantalla &quot;Configurar umbrales&quot; en Ajustes, con sus alertas y notificación&#10;  correspondiente&#10;- Corrige el ícono adaptativo de la app: el pez se salía de la zona segura del&#10;  ícono y se veía recortado en el launcher" />
   </component>
 </project>

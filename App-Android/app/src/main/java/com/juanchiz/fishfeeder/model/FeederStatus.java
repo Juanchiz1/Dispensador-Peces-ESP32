@@ -32,6 +32,9 @@ public class FeederStatus {
     @SerializedName("temperatura_baja")
     public boolean temperaturaBaja;
 
+    @SerializedName("posible_atasco")
+    public boolean posibleAtasco;
+
     @SerializedName("ultima_alimentacion")
     public String ultimaAlimentacion;
 

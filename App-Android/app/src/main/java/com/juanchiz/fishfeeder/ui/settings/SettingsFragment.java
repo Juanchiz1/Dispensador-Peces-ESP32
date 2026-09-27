@@ -73,10 +73,12 @@ public class SettingsFragment extends Fragment {
         SwitchMaterial switchNotifyHumidity = view.findViewById(R.id.switchNotifyHumidity);
         SwitchMaterial switchNotifyTemperature = view.findViewById(R.id.switchNotifyTemperature);
         SwitchMaterial switchNotifyDailySummary = view.findViewById(R.id.switchNotifyDailySummary);
+        SwitchMaterial switchNotifyJam = view.findViewById(R.id.switchNotifyJam);
         switchNotifyEmpty.setChecked(prefsManager.isNotifyEmptyEnabled());
         switchNotifyHumidity.setChecked(prefsManager.isNotifyHumidityEnabled());
         switchNotifyTemperature.setChecked(prefsManager.isNotifyTemperatureEnabled());
         switchNotifyDailySummary.setChecked(prefsManager.isNotifyDailySummaryEnabled());
+        switchNotifyJam.setChecked(prefsManager.isNotifyJamEnabled());
 
         switchNotifyEmpty.setOnCheckedChangeListener((buttonView, isChecked) ->
                 prefsManager.setNotifyEmptyEnabled(isChecked));
@@ -86,6 +88,8 @@ public class SettingsFragment extends Fragment {
                 prefsManager.setNotifyTemperatureEnabled(isChecked));
         switchNotifyDailySummary.setOnCheckedChangeListener((buttonView, isChecked) ->
                 prefsManager.setNotifyDailySummaryEnabled(isChecked));
+        switchNotifyJam.setOnCheckedChangeListener((buttonView, isChecked) ->
+                prefsManager.setNotifyJamEnabled(isChecked));
 
         SwitchMaterial switchVacationMode = view.findViewById(R.id.switchVacationMode);
         switchVacationMode.setEnabled(isConnected);
