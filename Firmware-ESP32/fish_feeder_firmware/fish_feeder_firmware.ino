@@ -101,9 +101,11 @@ int nivelTolvaPorcentaje = 0;
 bool tolvaVaciaAlerta = false;
 bool humedadAltaAlerta = false;
 String ultimaAlimentacion = "Nunca";
+int ultimaPorciones = 0;
 unsigned long ultimoDHT = 0;
 int lastMinuteChecked = -1;
 bool modoAP = false; // true cuando el ESP32 está en su propia red de configuración
+bool horariosPausados = false; // "modo vacaciones": pausa los horarios sin borrarlos
 
 const char PAGINA_HTML[] PROGMEM = R"HTMLPAGE(
 <!DOCTYPE html>
@@ -157,6 +159,11 @@ const char PAGINA_HTML[] PROGMEM = R"HTMLPAGE(
 </div>
 
 <div class="card">
+  <p>Modo vacaciones (pausa todos los horarios): <span id="v-pausado">--</span></p>
+  <button id="btnPausa" onclick="alternarPausa()">Cambiar</button>
+</div>
+
+<div class="card">
   <p>WiFi: <span id="v-wifi">--</span></p>
   <input type="text" id="nuevoSsid" placeholder="Nombre de la red (SSID)">
   <input type="password" id="nuevaPass" placeholder="Contraseña">
@@ -164,10 +171,13 @@ const char PAGINA_HTML[] PROGMEM = R"HTMLPAGE(
 </div>
 
 <script>
+let pausadoActual = false;
+
 async function actualizarEstado(){
   try {
     const r = await fetch('/api/status');
     const d = await r.json();
+    pausadoActual = !!d.horarios_pausados;
     document.getElementById('v-humedad').textContent = d.humedad.toFixed(1);
     document.getElementById('v-temp').textContent = d.temperatura.toFixed(1);
     document.getElementById('v-nivel').textContent = d.nivel_tolva_pct;
@@ -176,6 +186,7 @@ async function actualizarEstado(){
     document.getElementById('v-wifi').textContent = d.modo_ap
       ? ('Modo configuración (red "' + d.wifi_ssid + '")')
       : (d.wifi_ssid + ' · ' + d.wifi_rssi + ' dBm');
+    document.getElementById('v-pausado').textContent = d.horarios_pausados ? 'Activado' : 'Desactivado';
     let alertas = [];
     if (d.tolva_vacia) alertas.push('Tolva casi vacía');
     if (d.humedad_alta) alertas.push('Humedad alta en el alimento');
@@ -224,6 +235,15 @@ async function guardarHorarios(){
     body: JSON.stringify(datos)
   });
   alert('Horarios guardados');
+}
+
+async function alternarPausa(){
+  await fetch('/api/pause', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pausado: !pausadoActual })
+  });
+  actualizarEstado();
 }
 
 async function configurarWifi(){
@@ -404,9 +424,25 @@ void alimentar(int porciones) {
   char buf[20];
   sprintf(buf, "%02d/%02d %02d:%02d", ahora.day(), ahora.month(), ahora.hour(), ahora.minute());
   ultimaAlimentacion = String(buf);
+  ultimaPorciones = porciones;
+}
+
+void cargarPausa() {
+  prefs.begin("feeder", true);
+  horariosPausados = prefs.getBool("pausado", false);
+  prefs.end();
+}
+
+void guardarPausa(bool pausado) {
+  prefs.begin("feeder", false);
+  prefs.putBool("pausado", pausado);
+  prefs.end();
+  horariosPausados = pausado;
 }
 
 void revisarHorarios() {
+  if (horariosPausados) return; // modo vacaciones activo: no dispara nada
+
   DateTime ahora = rtc.now();
   if (ahora.minute() == lastMinuteChecked) return;
   lastMinuteChecked = ahora.minute();
@@ -440,6 +476,8 @@ void handleStatus() {
   doc["tolva_vacia"] = tolvaVaciaAlerta;
   doc["humedad_alta"] = humedadAltaAlerta;
   doc["ultima_alimentacion"] = ultimaAlimentacion;
+  doc["ultima_porciones"] = ultimaPorciones;
+  doc["horarios_pausados"] = horariosPausados;
   DateTime ahora = rtc.now();
   char buf[6];
   sprintf(buf, "%02d:%02d", ahora.hour(), ahora.minute());
@@ -518,6 +556,32 @@ void handleSetTime() {
   server.send(200, "application/json", "{\"ok\":true}");
 }
 
+// GET /api/pause -> {"pausado": true|false}
+void handleGetPause() {
+  StaticJsonDocument<128> doc;
+  doc["pausado"] = horariosPausados;
+  String salida;
+  serializeJson(doc, salida);
+  server.send(200, "application/json", salida);
+}
+
+// POST /api/pause  body: {"pausado": true|false}
+// "Modo vacaciones": pausa/reanuda todos los horarios sin borrarlos.
+void handleSetPause() {
+  if (!server.hasArg("plain")) {
+    server.send(400, "application/json", "{\"error\":\"sin datos\"}");
+    return;
+  }
+  StaticJsonDocument<128> doc;
+  if (deserializeJson(doc, server.arg("plain")) != DeserializationError::Ok) {
+    server.send(400, "application/json", "{\"error\":\"json invalido\"}");
+    return;
+  }
+  bool pausado = doc["pausado"] | false;
+  guardarPausa(pausado);
+  server.send(200, "application/json", "{\"ok\":true}");
+}
+
 void handleFeedNow() {
   int porciones = 1;
   if (server.hasArg("porciones")) porciones = server.arg("porciones").toInt();
@@ -572,6 +636,8 @@ void setupServidorWeb() {
   server.on("/api/wifi-config", HTTP_GET, handleGetWifiConfig);
   server.on("/api/wifi-config", HTTP_POST, handlePostWifiConfig);
   server.on("/api/time", HTTP_POST, handleSetTime);
+  server.on("/api/pause", HTTP_GET, handleGetPause);
+  server.on("/api/pause", HTTP_POST, handleSetPause);
   server.begin();
 }
 
@@ -604,6 +670,7 @@ void setup() {
   }
 
   cargarHorarios();
+  cargarPausa();
   conectarWiFi();
   setupServidorWeb();
 

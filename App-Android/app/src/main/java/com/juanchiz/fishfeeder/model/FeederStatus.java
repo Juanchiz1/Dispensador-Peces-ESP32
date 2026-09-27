@@ -26,6 +26,12 @@ public class FeederStatus {
     @SerializedName("humedad_alta")
     public boolean humedadAlta;
 
+    @SerializedName("temperatura_alta")
+    public boolean temperaturaAlta;
+
+    @SerializedName("temperatura_baja")
+    public boolean temperaturaBaja;
+
     @SerializedName("ultima_alimentacion")
     public String ultimaAlimentacion;
 

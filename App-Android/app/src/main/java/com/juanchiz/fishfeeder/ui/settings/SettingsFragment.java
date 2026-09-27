@@ -21,6 +21,7 @@ import com.juanchiz.fishfeeder.model.TimeSyncRequest;
 import com.juanchiz.fishfeeder.network.FeederApiService;
 import com.juanchiz.fishfeeder.network.RetrofitClient;
 import com.juanchiz.fishfeeder.ui.MainActivity;
+import com.juanchiz.fishfeeder.ui.thresholds.ThresholdsActivity;
 import com.juanchiz.fishfeeder.ui.wifi.WifiConfigActivity;
 
 import java.util.Calendar;
@@ -51,6 +52,7 @@ public class SettingsFragment extends Fragment {
         MaterialButton btnConnectDevice = view.findViewById(R.id.btnConnectDevice);
         MaterialButton btnConfigureWifi = view.findViewById(R.id.btnConfigureWifi);
         MaterialButton btnSyncTime = view.findViewById(R.id.btnSyncTime);
+        MaterialButton btnConfigureThresholds = view.findViewById(R.id.btnConfigureThresholds);
 
         boolean isConnected = prefsManager.isConnected();
         tvCurrentIp.setText(isConnected ? prefsManager.getDeviceIp() : getString(R.string.not_connected_yet));
@@ -61,20 +63,27 @@ public class SettingsFragment extends Fragment {
         // Reconfigurar/sincronizar solo tienen sentido si ya hay un dispensador conectado.
         btnConfigureWifi.setEnabled(isConnected);
         btnSyncTime.setEnabled(isConnected);
+        btnConfigureThresholds.setEnabled(isConnected);
         btnConfigureWifi.setOnClickListener(v -> goToWifiReconfigure());
         btnSyncTime.setOnClickListener(v -> syncTime(btnSyncTime));
+        btnConfigureThresholds.setOnClickListener(v ->
+                startActivity(new android.content.Intent(requireContext(), ThresholdsActivity.class)));
 
         SwitchMaterial switchNotifyEmpty = view.findViewById(R.id.switchNotifyEmpty);
         SwitchMaterial switchNotifyHumidity = view.findViewById(R.id.switchNotifyHumidity);
+        SwitchMaterial switchNotifyTemperature = view.findViewById(R.id.switchNotifyTemperature);
         SwitchMaterial switchNotifyDailySummary = view.findViewById(R.id.switchNotifyDailySummary);
         switchNotifyEmpty.setChecked(prefsManager.isNotifyEmptyEnabled());
         switchNotifyHumidity.setChecked(prefsManager.isNotifyHumidityEnabled());
+        switchNotifyTemperature.setChecked(prefsManager.isNotifyTemperatureEnabled());
         switchNotifyDailySummary.setChecked(prefsManager.isNotifyDailySummaryEnabled());
 
         switchNotifyEmpty.setOnCheckedChangeListener((buttonView, isChecked) ->
                 prefsManager.setNotifyEmptyEnabled(isChecked));
         switchNotifyHumidity.setOnCheckedChangeListener((buttonView, isChecked) ->
                 prefsManager.setNotifyHumidityEnabled(isChecked));
+        switchNotifyTemperature.setOnCheckedChangeListener((buttonView, isChecked) ->
+                prefsManager.setNotifyTemperatureEnabled(isChecked));
         switchNotifyDailySummary.setOnCheckedChangeListener((buttonView, isChecked) ->
                 prefsManager.setNotifyDailySummaryEnabled(isChecked));
 

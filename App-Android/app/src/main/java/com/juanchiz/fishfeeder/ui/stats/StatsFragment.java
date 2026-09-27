@@ -44,6 +44,7 @@ public class StatsFragment extends Fragment {
     private TextView tvFeedingsToday;
     private LineChart chartHumidity;
     private LineChart chartLevel;
+    private LineChart chartTemperature;
     private android.widget.LinearLayout containerFeedingHistory;
     private TextView tvHistoryEmpty;
 
@@ -62,11 +63,13 @@ public class StatsFragment extends Fragment {
         tvFeedingsToday = view.findViewById(R.id.tvFeedingsToday);
         chartHumidity = view.findViewById(R.id.chartHumidity);
         chartLevel = view.findViewById(R.id.chartLevel);
+        chartTemperature = view.findViewById(R.id.chartTemperature);
         containerFeedingHistory = view.findViewById(R.id.containerFeedingHistory);
         tvHistoryEmpty = view.findViewById(R.id.tvHistoryEmpty);
 
         setupChartStyle(chartHumidity);
         setupChartStyle(chartLevel);
+        setupChartStyle(chartTemperature);
 
         loadStats();
     }
@@ -110,6 +113,7 @@ public class StatsFragment extends Fragment {
                     tvEmptyState.setVisibility(View.GONE);
                     bindHumidityChart(recent);
                     bindLevelChart(recent);
+                    bindTemperatureChart(recent);
                 }
                 bindFeedingHistory(historial);
             });
@@ -184,6 +188,17 @@ public class StatsFragment extends Fragment {
         styleDataSet(dataSet, androidx.core.content.ContextCompat.getColor(requireContext(), R.color.brand_primary));
         chartLevel.setData(new LineData(dataSet));
         chartLevel.invalidate();
+    }
+
+    private void bindTemperatureChart(List<SensorReading> readings) {
+        List<Entry> entries = new ArrayList<>();
+        for (int i = 0; i < readings.size(); i++) {
+            entries.add(new Entry(i, (float) readings.get(i).temperatura));
+        }
+        LineDataSet dataSet = new LineDataSet(entries, "Temperatura");
+        styleDataSet(dataSet, androidx.core.content.ContextCompat.getColor(requireContext(), R.color.alert_warning));
+        chartTemperature.setData(new LineData(dataSet));
+        chartTemperature.invalidate();
     }
 
     private void styleDataSet(LineDataSet dataSet, int color) {

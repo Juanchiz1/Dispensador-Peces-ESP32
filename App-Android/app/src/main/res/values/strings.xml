@@ -30,6 +30,8 @@
     <string name="portions">Porciones</string>
     <string name="alert_empty">La tolva está casi vacía</string>
     <string name="alert_humidity">Humedad alta en el alimento</string>
+    <string name="alert_temp_high">Temperatura alta</string>
+    <string name="alert_temp_low">Temperatura baja</string>
     <string name="status_connected">Conectado</string>
     <string name="status_disconnected">Sin conexión con el dispensador</string>
 
@@ -42,6 +44,7 @@
     <string name="stats_empty">Aún no hay suficientes datos. Deja la app conectada un tiempo para acumular historial.</string>
     <string name="stats_humidity_chart">Humedad del alimento (últimas lecturas)</string>
     <string name="stats_level_chart">Nivel de la tolva (últimas lecturas)</string>
+    <string name="stats_temperature_chart">Temperatura (últimas lecturas)</string>
     <string name="stats_feedings_today">Alimentaciones registradas hoy</string>
 
     <string name="settings_title">Ajustes</string>
@@ -50,6 +53,7 @@
     <string name="settings_notifications">Notificaciones</string>
     <string name="settings_notify_empty">Avisar cuando la tolva esté vacía</string>
     <string name="settings_notify_humidity">Avisar cuando la humedad sea alta</string>
+    <string name="settings_notify_temperature">Avisar cuando la temperatura sea anormal</string>
     <string name="btn_disconnect">Desconectar dispositivo</string>
     <string name="disconnect_confirm_title">¿Desconectar el dispensador?</string>
     <string name="disconnect_confirm_message">Tendrás que ingresar la IP de nuevo para volver a conectarte.</string>
@@ -99,4 +103,20 @@
     <string name="vacation_mode_active_banner">Modo vacaciones activado: los horarios quedaron en pausa</string>
     <string name="vacation_mode_resumed">Modo vacaciones desactivado: los horarios volvieron a activarse</string>
     <string name="vacation_mode_error">No se pudo cambiar el modo vacaciones. Verifica la conexión con el dispensador.</string>
+
+    <string name="settings_thresholds">Umbrales de calibración y alerta</string>
+    <string name="btn_configure_thresholds">Configurar umbrales</string>
+
+    <string name="thresholds_title">Umbrales de calibración y alerta</string>
+    <string name="thresholds_subtitle">Ajusta a partir de qué valores el dispensador considera algo anormal. Los de la tolva dependen de cómo quedó instalado el sensor VL53L0X; los de humedad y temperatura, de las condiciones normales de tu alimento.</string>
+    <string name="hint_humedad_max">Humedad máxima normal (%)</string>
+    <string name="hint_temp_min">Temperatura mínima normal (°C)</string>
+    <string name="hint_temp_max">Temperatura máxima normal (°C)</string>
+    <string name="hint_tolva_llena">Distancia con la tolva llena (mm)</string>
+    <string name="hint_tolva_vacia">Distancia con la tolva vacía (mm)</string>
+    <string name="btn_save_thresholds">Guardar umbrales</string>
+    <string name="thresholds_saving">Guardando…</string>
+    <string name="thresholds_success">Umbrales guardados correctamente</string>
+    <string name="thresholds_error">No se pudieron guardar los umbrales. Verifica la conexión con el dispensador.</string>
+    <string name="thresholds_load_error">No se pudieron cargar los umbrales actuales.</string>
 </resources>

@@ -36,6 +36,7 @@ public class PollingWorker extends Worker {
     private static final String WORK_NAME = "fish_feeder_polling";
     private static final int NOTIF_ID_EMPTY = 1;
     private static final int NOTIF_ID_HUMIDITY = 2;
+    private static final int NOTIF_ID_TEMPERATURE = 4;
 
     public PollingWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -93,6 +94,14 @@ public class PollingWorker extends Worker {
                 NotificationHelper.notify(context, NOTIF_ID_HUMIDITY, context.getString(R.string.alert_humidity));
             } else {
                 NotificationManagerCompat.from(context).cancel(NOTIF_ID_HUMIDITY);
+            }
+
+            boolean temperaturaAnormal = status.temperaturaAlta || status.temperaturaBaja;
+            if (temperaturaAnormal && prefs.isNotifyTemperatureEnabled()) {
+                String mensaje = context.getString(status.temperaturaAlta ? R.string.alert_temp_high : R.string.alert_temp_low);
+                NotificationHelper.notify(context, NOTIF_ID_TEMPERATURE, mensaje);
+            } else {
+                NotificationManagerCompat.from(context).cancel(NOTIF_ID_TEMPERATURE);
             }
 
             // Purga lecturas de más de 30 días para no crecer indefinidamente.

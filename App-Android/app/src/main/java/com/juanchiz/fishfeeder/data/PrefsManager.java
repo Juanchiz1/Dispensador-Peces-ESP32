@@ -10,6 +10,7 @@ public class PrefsManager {
     private static final String KEY_DEVICE_IP = "device_ip";
     private static final String KEY_NOTIFY_EMPTY = "notify_empty";
     private static final String KEY_NOTIFY_HUMIDITY = "notify_humidity";
+    private static final String KEY_NOTIFY_TEMPERATURE = "notify_temperature";
     private static final String KEY_NOTIFY_DAILY_SUMMARY = "notify_daily_summary";
     private static final String KEY_LAST_FEED_LABEL = "last_feed_label";
 
@@ -50,6 +51,14 @@ public class PrefsManager {
 
     public void setNotifyHumidityEnabled(boolean enabled) {
         prefs.edit().putBoolean(KEY_NOTIFY_HUMIDITY, enabled).apply();
+    }
+
+    public boolean isNotifyTemperatureEnabled() {
+        return prefs.getBoolean(KEY_NOTIFY_TEMPERATURE, true);
+    }
+
+    public void setNotifyTemperatureEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_NOTIFY_TEMPERATURE, enabled).apply();
     }
 
     public String getBaseUrl() {

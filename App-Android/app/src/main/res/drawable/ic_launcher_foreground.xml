@@ -1,9 +1,17 @@
+<!--
+  Los íconos adaptativos de Android usan un lienzo de 108x108dp, pero el sistema recorta el
+  contenido a una "zona segura" central de ~66dp (el resto se pierde según la máscara del
+  launcher: círculo, squircle, etc.). El pez original estaba dibujado en un viewport de 24x24
+  estirado a los 108x108 completos, así que se salía de esa zona segura y se veía recortado.
+  Aquí está el mismo trazo (ver ic_fish.xml), reescalado x3 y centrado en (54,54) para que quede
+  completo dentro de la zona segura sin importar la forma de máscara que use el launcher.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:viewportWidth="108"
+    android:viewportHeight="108">
     <path
         android:fillColor="@android:color/white"
-        android:pathData="M2,12c2.5,-3.5 6,-5.5 10,-5.5c3,0 5.7,1.1 7.6,2.9l1.9,-2.4l0.5,0.4l-1,3.4l1,3.4l-0.5,0.4l-1.9,-2.4C17.7,14.4 15,15.5 12,15.5C8,15.5 4.5,13.5 2,12z"/>
+        android:pathData="M24,54c7.5,-10.5 18,-16.5 30,-16.5c9,0 17.1,3.3 22.8,8.7l5.7,-7.2l1.5,1.2l-3,10.2l3,10.2l-1.5,1.2l-5.7,-7.2C71.1,61.2 63,64.5 54,64.5C42,64.5 31.5,58.5 24,54z"/>
 </vector>

@@ -172,6 +172,14 @@ public class DashboardFragment extends Fragment {
             if (alertText.length() > 0) alertText.append(" · ");
             alertText.append(getString(R.string.alert_humidity));
         }
+        if (status.temperaturaAlta) {
+            if (alertText.length() > 0) alertText.append(" · ");
+            alertText.append(getString(R.string.alert_temp_high));
+        }
+        if (status.temperaturaBaja) {
+            if (alertText.length() > 0) alertText.append(" · ");
+            alertText.append(getString(R.string.alert_temp_low));
+        }
 
         if (alertText.length() > 0) {
             alertBanner.setVisibility(View.VISIBLE);

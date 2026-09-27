@@ -33,5 +33,10 @@
             android:exported="false"
             android:label="@string/wifi_config_title" />
 
+        <activity
+            android:name=".ui.thresholds.ThresholdsActivity"
+            android:exported="false"
+            android:label="@string/thresholds_title" />
+
     </application>
 </manifest>

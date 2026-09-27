@@ -3,6 +3,7 @@ package com.juanchiz.fishfeeder.network;
 import com.juanchiz.fishfeeder.model.FeederStatus;
 import com.juanchiz.fishfeeder.model.PauseState;
 import com.juanchiz.fishfeeder.model.ScheduleItem;
+import com.juanchiz.fishfeeder.model.ThresholdsConfig;
 import com.juanchiz.fishfeeder.model.TimeSyncRequest;
 import com.juanchiz.fishfeeder.model.WifiConfig;
 import com.juanchiz.fishfeeder.model.WifiConfigRequest;
@@ -48,4 +49,10 @@ public interface FeederApiService {
 
     @POST("api/pause")
     Call<Void> setPauseState(@Body PauseState state);
+
+    @GET("api/thresholds")
+    Call<ThresholdsConfig> getThresholds();
+
+    @POST("api/thresholds")
+    Call<Void> setThresholds(@Body ThresholdsConfig thresholds);
 }
